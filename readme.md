@@ -4,8 +4,8 @@ Basically trying to adapt [love.js](https://github.com/TannerRogalsky/love.js) t
 
 This is a fork of [Davidobot/love.js](https://github.com/Davidobot/love.js). On top of the
 upstream tooling it adds an asynchronous **HTTP module** and ships an
-[example](sample/) that demonstrates it. The old console/`eval` JavaScript bridge
-(`consolewrapper.js` and friends) is **not** used — talk to the network from Lua
+[example](sample/) that demonstrates it. There is no JavaScript bridge and no
+`eval`: the old console-based trick is gone — talk to the network from Lua
 instead.
 
 ## What this fork adds
