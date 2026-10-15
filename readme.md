@@ -50,35 +50,29 @@ headers on <http://localhost:8080>. See [sample/readme.md](sample/readme.md) for
 the details and the desktop instructions.
 
 ## Installation
-Install the package from `npm`; no need to download this repo:
+This fork is **not published to npm** — run it from a checkout:
+
 ```
-npm i love.js
+git clone https://github.com/dreagledr/love.js.git
+cd love.js
+npm install
 ```
 
-or _globally_:
-```
-npm -g i love.js
-```
+(The `love.js` package on npm is [Davidobot's](https://github.com/Davidobot/love.js);
+it does not have the `http` module this fork adds.)
 
 ## Usage
+Run the CLI straight from the checkout:
 ```
-npx love.js [options] <input> <output>
+node index.js [options] <input> <output>
 ```
-
-or
+or, if you have [bun](https://bun.sh):
 ```
-love.js [options] <input> <output>
-```
-
-or (on Windows cmd and Powershell, according to https://github.com/Davidobot/love.js/issues/48)
-```
-npx love.js.cmd [options] <input> <output>
+bun index.js [options] <input> <output>
 ```
 
 `<input>` can either be a folder or a `.love` file.
 `<output>` is a folder that will hold debug and release web pages.
-
-You can also replace `love.js` in the above command with `index.js` (or ` node index.js` on Windows) directly if the numpy install is giving you problems.
 
 ## Options:
 ```
