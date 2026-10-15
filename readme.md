@@ -132,29 +132,59 @@ return texturecolor * color / 2.0;
    now, and it works without a sandbox escape.
 
 ## Building
-### MacOS / Linux
-Clone the [megasource](https://github.com/dreagledr/megasource/tree/emscripten-fetch) and [love](https://github.com/dreagledr/love/tree/emscripten-fetch) and then run `build_lovejs.sh` (with minor changes for file paths).
 
-That should just work™. Make sure you have CMake installed, clone [emsdk](https://github.com/emscripten-core/emsdk) and edit `build_lovejs.sh` to point to the right paths.
+The binaries in `src/compat` and `src/release` are prebuilt and committed — normal
+use never rebuilds them. If you change the engine you need a
+[megasource](https://github.com/dreagledr/megasource/tree/emscripten-fetch) checkout
+(with its `libs/love` submodule) and **emsdk 2.0.0** + **Ninja**.
 
-Set up emsdk with the following settings:
+emsdk 2.0.0 is not negotiable: newer versions removed `getMemory`, which the 11.5
+tree still uses.
 
-``` bash
-./emsdk install 2.0.0
-./emsdk activate 2.0.0
+### Any OS, via Docker
+
+`Dockerfile` has everything the build needs (emsdk 2.0.0, Ninja, a modern CMake):
+
+```
+docker build -t lovejs-build .
+docker run --rm \
+  -v "$PWD:/work" \
+  -v /path/to/megasource:/megasource \
+  -e MEGASOURCE=/megasource \
+  lovejs-build ./build_lovejs.sh
 ```
 
-Note, using v:2.0.0 is important as newer versions have depreciated `getMemory`
+`EMSDK` is already set inside the image, so only `MEGASOURCE` has to be passed.
+Add `--targets compat` (or `release`) to build just one, and `--clean` after
+switching toolchains, since the build directory is shared with `/work`.
 
+### Linux / macOS
 
-### Windows
-Clone the [megasource](https://github.com/dreagledr/megasource/tree/emscripten-fetch) and [love](https://github.com/dreagledr/love/tree/emscripten-fetch) and then run `build_lovejs.bat` (with minor changes for file paths) in PowerShell.
+```
+git clone --recursive https://github.com/dreagledr/megasource.git
+git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
+~/emsdk/emsdk install 2.0.0
+~/emsdk/emsdk activate 2.0.0
 
-Make sure you have CMake and Make (e.g. through [chocolatey](https://chocolatey.org/packages/make)), and that you have the latest Visual Studio build bundles installed. Clone [emsdk](https://github.com/emscripten-core/emsdk) and edit `build_lovejs.bat` to point to the right paths.
+./build_lovejs.sh --emsdk ~/emsdk --megasource ./megasource
+```
 
-The resulting `love/love.js`, `love/love.wasm` and `love/love.worker.js` are what
-get copied into `src/compat` and `src/release`. Commit them — the tooling relies on
-these prebuilt binaries.
+The artifacts are staged into `src/compat` and `src/release` (release also gets
+`love.worker.js`). Commit them — the tooling relies on these prebuilt binaries.
+
+Options:
+
+```
+-e, --emsdk DIR       emsdk checkout (2.0.0); defaults to $EMSDK
+-m, --megasource DIR  megasource checkout; defaults to $MEGASOURCE
+-l, --love DIR        build a love checkout instead of megasource's libs/love
+                      submodule (passed as -DMEGA_LOVE); defaults to $LOVE
+    --out DIR         where the binaries go [<repo>/src]
+    --build DIR       build directory [<repo>/build]
+    --targets LIST    compat,release [compat,release]
+    --jobs N          parallel jobs [number of CPUs]
+    --clean           delete the build directory first
+```
 
 ## License
 MIT, see [LICENSE](LICENSE). LÖVE itself is zlib-licensed; see the

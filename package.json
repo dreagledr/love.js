@@ -10,10 +10,7 @@
   "scripts": {
     "lint": "eslint index.js src",
     "test": "npm run lint",
-    "sample": "bun run sample/dev.ts",
-    "preversion": "npm run test",
-    "version": "./build_lovejs.sh",
-    "postversion": "git push && git push --tags"
+    "sample": "bun run sample/dev.ts"
   },
   "bin": {
     "love.js": "./index.js"
