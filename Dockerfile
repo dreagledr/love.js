@@ -1,11 +1,8 @@
-# Build environment for the love.js engine: emsdk 2.0.0 + Ninja + a modern CMake.
-#
-# Based on the official emsdk 2.0.0 image, which is Debian buster — its apt
-# repositories are gone, so the extra tools come from release archives instead.
+# Build environment for the love.js engine: emsdk 2.0.0 + Ninja + a modern CMake,
+# plus the engine sources — so a build needs nothing but this repo.
 #
 #   docker build -t lovejs-build .
-#   docker run --rm -v "$PWD:/work" -v /path/to/megasource:/megasource \
-#     -e MEGASOURCE=/megasource lovejs-build ./build_lovejs.sh
+#   docker run --rm -v "$PWD:/work" lovejs-build ./build_lovejs.sh
 #
 # See the "Building" section of readme.md.
 
@@ -32,8 +29,19 @@ RUN curl -fsSL -o /tmp/cmake.tar.gz \
  && rm /tmp/cmake.tar.gz \
  && cmake --version
 
-# build_lovejs.sh picks both of these up on its own.
-ENV EMSDK=/emsdk
+# The engine sources, with libs/love as a submodule. The .git directories are
+# dropped: LÖVE's version comes from src/common/version.h, not from git.
+#   docker build --build-arg MEGASOURCE_REF=<branch|tag> -t lovejs-build .
+ARG MEGASOURCE_REPO=https://github.com/dreagledr/megasource.git
+ARG MEGASOURCE_REF=emscripten-fetch
+RUN git clone --recursive --branch "${MEGASOURCE_REF}" "${MEGASOURCE_REPO}" /opt/megasource \
+ && rm -rf /opt/megasource/.git /opt/megasource/libs/love/.git \
+ && test -f /opt/megasource/libs/love/CMakeLists.txt
+
+# build_lovejs.sh picks both of these up on its own. To build a local checkout
+# instead, mount it and override MEGASOURCE.
+ENV EMSDK=/emsdk \
+    MEGASOURCE=/opt/megasource
 
 WORKDIR /work
 CMD ["bash"]

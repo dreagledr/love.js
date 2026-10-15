@@ -143,20 +143,29 @@ tree still uses.
 
 ### Any OS, via Docker
 
-`Dockerfile` has everything the build needs (emsdk 2.0.0, Ninja, a modern CMake):
+`Dockerfile` bakes in everything the build needs — emsdk 2.0.0, Ninja, a modern
+CMake and the engine sources (megasource with its `libs/love` submodule):
 
 ```
 docker build -t lovejs-build .
-docker run --rm \
-  -v "$PWD:/work" \
-  -v /path/to/megasource:/megasource \
-  -e MEGASOURCE=/megasource \
-  lovejs-build ./build_lovejs.sh
+docker run --rm -v "$PWD:/work" lovejs-build ./build_lovejs.sh
 ```
 
-`EMSDK` is already set inside the image, so only `MEGASOURCE` has to be passed.
+That is all: `EMSDK` and `MEGASOURCE` point at the baked-in copies. The artifacts
+land in `src/compat` and `src/release`.
+
 Add `--targets compat` (or `release`) to build just one, and `--clean` after
 switching toolchains, since the build directory is shared with `/work`.
+
+To build against a different branch or your own checkout:
+
+```
+docker build --build-arg MEGASOURCE_REF=<branch|tag> -t lovejs-build .
+
+docker run --rm -v "$PWD:/work" \
+  -v /path/to/megasource:/megasource -e MEGASOURCE=/megasource \
+  lovejs-build ./build_lovejs.sh
+```
 
 ### Linux / macOS
 
