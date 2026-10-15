@@ -1,7 +1,7 @@
 {
   "name": "love.js",
   "version": "11.4.1",
-  "description": "Tooling to support the Emscripten port of LÖVE.",
+  "description": "Tooling to support the Emscripten port of LÖVE. Fork with an async HTTP module (emscripten_fetch).",
   "engines": {
     "node": ">=7.10.0",
     "npm": ">=4.2.0"
@@ -10,6 +10,7 @@
   "scripts": {
     "lint": "eslint index.js src",
     "test": "npm run lint",
+    "sample": "bun run sample/dev.ts",
     "preversion": "npm run test",
     "version": "./build_lovejs.sh",
     "postversion": "git push && git push --tags"
@@ -19,14 +20,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Davidobot/love.js.git"
+    "url": "git+https://github.com/dreagledr/love.js.git"
   },
   "author": "Tanner Rogalsky <tanner@tannerrogalsky.com>",
+  "contributors": [
+    "dreagledr"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Davidobot/love.js/issues"
+    "url": "https://github.com/dreagledr/love.js/issues"
   },
-  "homepage": "https://github.com/Davidobot/love.js#readme",
+  "homepage": "https://github.com/dreagledr/love.js#readme",
   "devDependencies": {
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^15.0.1",

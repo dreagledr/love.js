@@ -2,17 +2,52 @@ Love.js for LÖVE v11.5
 ============
 Basically trying to adapt [love.js](https://github.com/TannerRogalsky/love.js) to the latest and greatest versions of LÖVE and Emscripten.
 
-## Demos
- * [Specification Test](https://davidobot.net/lovejs/lovejs_spec/); [(Compatibility Version)](https://davidobot.net/lovejs/lovejs_spec_c/) (threads, coroutines, shaders!)
- * [Another Kind of World](https://davidobot.net/lovejs/akow/); [(Compatibility Version)](https://davidobot.net/lovejs/akow_c/)
- * [groverburger's 3D engine (g3d)](https://davidobot.net/lovejs/3d/); [(Compatibility Version)](https://davidobot.net/lovejs/3d_c/) (shaders, click canvas to lock)
- * [Supported Graphical Features Test](https://davidobot.net/lovejs/features/); [(Compatibility Version)](https://davidobot.net/lovejs/features_c/)
+This is a fork of [Davidobot/love.js](https://github.com/Davidobot/love.js). On top of the
+upstream tooling it adds an asynchronous **HTTP module** and ships an
+[example](sample/) that demonstrates it. The old console/`eval` JavaScript bridge
+(`consolewrapper.js` and friends) is **not** used — talk to the network from Lua
+instead.
+
+## What this fork adds
+
+* A Lua module named `http`, built on the [Emscripten Fetch API](https://emscripten.org/docs/api_reference/fetch.html)
+  (`emscripten_fetch`). Async, with real status codes, headers and bodies:
+
+  ```lua
+  local http = require("http")
+
+  http.request{
+      url = "/api/random",
+      method = "GET",
+      headers = { ["Accept"] = "application/json" },
+      data = nil,
+      timeout = 10,
+      withCredentials = false,
+      onSuccess = function(res) end, -- { status, statusText, body, headers }
+      onError = function(err) end,   -- { status, statusText, body, headers, message }
+  }
+
+  -- once per frame:
+  http.poll()
+  ```
+
+  The module lives in [dreagledr/love](https://github.com/dreagledr/love)
+  (`src/libraries/emfetch/emfetch.cpp`, branch `emscripten-fetch`), so the engine
+  binaries committed here already contain it.
+
+* The [`sample/`](sample/) directory: the sources of a small game that calls a
+  [bun](https://bun.sh) dev server and prints whatever it gets back, plus a
+  one-command way to run it (`bun run sample`).
 
 ## Quickstart
 ```
-love.js game.love game -c
+bun install
+bun run sample
 ```
-Build a game with the compatibility version.
+
+That packs `sample/game/`, builds the web bundle and serves it with the right
+headers on <http://localhost:8080>. See [sample/readme.md](sample/readme.md) for
+the details and the desktop instructions.
 
 ## Installation
 Install the package from `npm`; no need to download this repo:
@@ -56,8 +91,11 @@ You can also replace `love.js` in the above command with `index.js` (or ` node i
 
 ### Test it
 1. Run a web server (while `cd`-ed into the `<output>` folder):
-  - eg: `python -m http.server 8000`
+   - eg: `python -m http.server 8000`
 2. Open `localhost:8000` in the browser of your choice.
+
+For the release build the server also has to send the two headers below, otherwise
+you will get `SharedArrayBuffer is not defined`. `sample/dev.ts` does this for you.
 
 ## Notes
 1. Compatibility version (`-c`) should work with most browsers. The difference is that pthreads aren't used. This results in *dodgy audio*. 
@@ -95,11 +133,13 @@ return texturecolor * color / 2.0;
 
 7. If you use a depth buffer, add the following line: `t.window.depth = 16` to your `config.lua` file to make sure normals aren't inverted in Firefox.
 
-8. If you'd like to run javascript from within your game, you might find [the following repo useful](https://github.com/MrcSnm/Love.js-Api-Player).
+8. For HTTP requests use the `http` module above. Do not reintroduce the old
+   console/`eval` JavaScript bridge: `HTTP` from Lua is what the engine supports
+   now, and it works without a sandbox escape.
 
 ## Building
 ### MacOS / Linux
-Clone the [megasource](https://github.com/Davidobot/megasource/tree/emscripten) and [love](https://github.com/Davidobot/love/tree/emscripten) and then run `build_lovejs.sh` (with minor changes for file paths).
+Clone the [megasource](https://github.com/dreagledr/megasource/tree/emscripten-fetch) and [love](https://github.com/dreagledr/love/tree/emscripten-fetch) and then run `build_lovejs.sh` (with minor changes for file paths).
 
 That should just work™. Make sure you have CMake installed, clone [emsdk](https://github.com/emscripten-core/emsdk) and edit `build_lovejs.sh` to point to the right paths.
 
@@ -114,6 +154,15 @@ Note, using v:2.0.0 is important as newer versions have depreciated `getMemory`
 
 
 ### Windows
-Clone the [megasource](https://github.com/Davidobot/megasource/tree/emscripten) and [love](https://github.com/Davidobot/love/tree/emscripten) and then run `build_lovejs.bat` (with minor changes for file paths) in PowerShell.
+Clone the [megasource](https://github.com/dreagledr/megasource/tree/emscripten-fetch) and [love](https://github.com/dreagledr/love/tree/emscripten-fetch) and then run `build_lovejs.bat` (with minor changes for file paths) in PowerShell.
 
 Make sure you have CMake and Make (e.g. through [chocolatey](https://chocolatey.org/packages/make)), and that you have the latest Visual Studio build bundles installed. Clone [emsdk](https://github.com/emscripten-core/emsdk) and edit `build_lovejs.bat` to point to the right paths.
+
+The resulting `love/love.js`, `love/love.wasm` and `love/love.worker.js` are what
+get copied into `src/compat` and `src/release`. Commit them — the tooling relies on
+these prebuilt binaries.
+
+## License
+MIT, see [LICENSE](LICENSE). LÖVE itself is zlib-licensed; see the
+[love](https://github.com/dreagledr/love) and
+[megasource](https://github.com/dreagledr/megasource) forks.
